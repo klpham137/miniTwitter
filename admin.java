@@ -1,12 +1,14 @@
 
 package miniTwitter;
 
+import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 
 public class admin extends javax.swing.JFrame {
     private int userCount;
     private int groupCount;
+    private User user;
     
     /**
      * Creates new form admin
@@ -37,6 +39,8 @@ public class admin extends javax.swing.JFrame {
         MessagesTotal = new javax.swing.JButton();
         ShowGroupTotal = new javax.swing.JButton();
         PositivePerentage = new javax.swing.JButton();
+        ValidateId = new javax.swing.JButton();
+        LastUpdated = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -115,6 +119,20 @@ public class admin extends javax.swing.JFrame {
             }
         });
 
+        ValidateId.setText("Validate Id");
+        ValidateId.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ValidateIdActionPerformed(evt);
+            }
+        });
+
+        LastUpdated.setText("Last Updated");
+        LastUpdated.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LastUpdatedActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -142,7 +160,11 @@ public class admin extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(ShowUserTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(ShowGroupTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(ShowGroupTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(ValidateId, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(LastUpdated, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -163,6 +185,10 @@ public class admin extends javax.swing.JFrame {
                         .addComponent(UserView, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ValidateId, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(LastUpdated, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(ShowUserTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(ShowGroupTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -182,12 +208,10 @@ public class admin extends javax.swing.JFrame {
         String selectedText = null;
         DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if (selectedNode != null) {
-            selectedText = selectedNode.getUserObject().toString();
-            
-            System.out.println("Selected Node Text: " + selectedText);
+            selectedText = (selectedNode.toString());
         }
-
-        UserView userView = new UserView(selectedText);
+        User u = new User(selectedText);
+        UserView userView = new UserView(u);
         userView.show();
     }                                        
 
@@ -212,27 +236,27 @@ public class admin extends javax.swing.JFrame {
     }                                             
 
     private void jButtonAddUserActionPerformed(java.awt.event.ActionEvent evt) {                                               
-
     DefaultTreeModel treeModel = (DefaultTreeModel) jTree1.getModel();
     TreePath selectedPath = jTree1.getSelectionPath();
     DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
     
     String newUserId = UserId.getText();
+    User user = new User(newUserId);
 
     // Check if the new UserID already exists in the selected node
     boolean isDuplicate = false;
     for (int i = 0; i < selectedNode.getChildCount(); i++) {
         DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) selectedNode.getChildAt(i);
-        if (childNode.getUserObject().equals(newUserId)) {
+        if (childNode.getUserObject().equals(user.getUsername())) {
             isDuplicate = true;
             break;
         }
     }
 
     if(!isDuplicate){
-    // Create the new node with a meaningful user object, e.g., folder name
-    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(UserId.getText());
+    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(user.getUsername());
     newNode.setAllowsChildren(false); // Allow the new node to have child nodes (objects)
+    
     // Add the new node as a child to the selected node
     selectedNode.add(newNode);
 
@@ -250,8 +274,8 @@ public class admin extends javax.swing.JFrame {
     TreePath selectedPath = jTree1.getSelectionPath();
     DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
 
-    // Create the new node with a meaningful user object, e.g., folder name
-    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(GroupId.getText()) {
+    Group group = new Group(GroupId.getText());
+    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(group.getGroupName()) {
         @Override
         public boolean isLeaf() {
             return false;
@@ -269,19 +293,58 @@ public class admin extends javax.swing.JFrame {
     groupCount ++;
     }                                               
 
+    private void ValidateIdActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    DefaultTreeModel treeModel = (DefaultTreeModel) jTree1.getModel();
+    TreePath selectedPath = jTree1.getSelectionPath();
+    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+
+    // Iterate through the root's children to check for uniqueness
+    DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+    Enumeration<?> children = rootNode.children();
+    boolean isUnique = true;
+
+    while (children.hasMoreElements()) {
+        DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) children.nextElement();
+        if (childNode != selectedNode && childNode.getUserObject().equals(selectedNode.getUserObject())) {
+            // The selected node's value is not unique
+            isUnique = false;
+            break;
+        }
+    }
+
+    if ((!selectedNode.toString().contains (" ")) && (isUnique)) {
+        // Selected node is unique
+        JOptionPane.showMessageDialog(admin.this, selectedNode.toString() + " is valid");
+    } else {
+        // Selected node is not unique
+        JOptionPane.showMessageDialog(admin.this, selectedNode.toString() + " is not valid");
+    }
+
+        
+    }                                          
+
+    private void LastUpdatedActionPerformed(java.awt.event.ActionEvent evt) {  
+        String lastUpdated = user.getLastUser();                                      
+         // Get the last updated user
+            JOptionPane.showMessageDialog(admin.this,"Last updated user: ");
+
+        
+    }                                           
+
 
     // Variables declaration - do not modify                     
     private javax.swing.JTextField GroupId;
+    private javax.swing.JButton LastUpdated;
     private javax.swing.JButton MessagesTotal;
     private javax.swing.JButton PositivePerentage;
     private javax.swing.JButton ShowGroupTotal;
     private javax.swing.JButton ShowUserTotal;
     private javax.swing.JTextField UserId;
     private javax.swing.JButton UserView;
+    private javax.swing.JButton ValidateId;
     private javax.swing.JButton jButtonAddGroup;
     private javax.swing.JButton jButtonAddUser;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
     // End of variables declaration                   
 }
-

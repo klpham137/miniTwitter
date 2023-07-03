@@ -10,7 +10,6 @@ public class counters {
     
     public static void addTweet(){
         tweetCount ++;
-        System.out.println("tweets: " + tweetCount);
     }
     
     public static float getTweetCount(){
